@@ -1,4 +1,4 @@
-.PHONY: db-up db-down db-restart db-logs db-shell db-migrate
+.PHONY: db-up db-down db-restart db-logs db-shell db-clean db-health run test deps
 
 # Start the PostgreSQL database
 db-up:
@@ -27,3 +27,16 @@ db-clean:
 # Check database health
 db-health:
 	docker exec token_transfer_db pg_isready -U postgres
+
+# Run the server
+run:
+	go run main.go
+
+# Run tests
+test:
+	go test -v ./...
+
+# Install dependencies
+deps:
+	go mod download
+	go mod tidy
