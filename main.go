@@ -4,6 +4,9 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"token-transfer-api/db"
+
+	"github.com/joho/godotenv"
 )
 
 type TransferRequest struct {
@@ -20,6 +23,15 @@ type Error struct {
 }
 
 func main() {
+	if err := godotenv.Load(); err != nil {
+		log.Println("No .env file found, using environment variables")
+	}
+
+	if err := db.InitDB(); err != nil {
+		log.Fatalf("Failed to initialize database: %v", err)
+	}
+	defer db.CloseDB()
+
 	http.HandleFunc("/query", func(w http.ResponseWriter, r *http.Request) {
 		var req TransferRequest
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
