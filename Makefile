@@ -30,11 +30,18 @@ db-health:
 
 # Run the server
 run:
-	go run main.go
+	go run cmd/api/main.go
 
 # Run tests
 test:
-	go test -v ./...
+	go test ./tests/...
+
+# Run individual test suites
+test-unit:
+	go test ./tests/unit/...
+
+test-integration:
+	go test ./tests/integration/...
 
 # Install dependencies
 deps:
