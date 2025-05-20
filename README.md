@@ -9,8 +9,9 @@ This API allows transferring BTP tokens between wallets. Initially, there is a d
 ## Features
 
 - GraphQL API with a single `transfer` mutation
-- Transaction-based token transfers
+- Transaction-based token transfers with race condition handling
 - PostgreSQL database for storing wallet balances and transfer history
+- Comprehensive test coverage including concurrent transfer scenarios
 - Dockerized environment for easy setup
 
 ## Prerequisites
@@ -34,7 +35,8 @@ token-transfer-api/
 │   └── unit/        # Unit tests
 ├── sql/             # SQL scripts
 ├── docker-compose.yaml
-└── Makefile
+├── Makefile
+└── README.md
 ```
 
 ## Setup
@@ -112,6 +114,49 @@ Response:
   }
 }
 ```
+
+### Error Handling
+
+When the sender has insufficient balance:
+
+```graphql
+mutation {
+  transfer(
+    from_address: "0x0000000000000000000000000000000000000001", 
+    to_address: "0x0000000000000000000000000000000000000002", 
+    amount: "1000"
+  ) {
+    balance
+  }
+}
+```
+
+Response:
+```json
+{
+  "errors": [
+    {
+      "message": "Insufficient balance",
+      "path": ["transfer"]
+    }
+  ],
+  "data": null
+}
+```
+
+## Race Condition Handling
+
+The API properly handles race conditions when multiple transfers from the same wallet happen simultaneously. For example, if a wallet has 10 BTP tokens and three transfers are requested concurrently:
+- +1 token (deposit to the wallet)
+- -4 tokens (withdrawal from the wallet)
+- -7 tokens (withdrawal from the wallet)
+
+The system ensures that either:
+- `-4` and `+1` succeed, `-7` fails (insufficient balance)
+- `-7` and `+1` succeed, `-4` fails (insufficient balance)
+- All three succeed (if processing order allows)
+
+In any case, the wallet balance will never go negative.
 
 ## Database Schema
 
