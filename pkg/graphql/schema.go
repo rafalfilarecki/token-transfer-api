@@ -61,6 +61,18 @@ func executeQuery(schema graphql.Schema, query string, variables map[string]inte
 func createSchema() (graphql.Schema, error) {
 	resolver := &graph.Resolver{}
 
+	walletType := graphql.NewObject(graphql.ObjectConfig{
+		Name: "Wallet",
+		Fields: graphql.Fields{
+			"address": &graphql.Field{
+				Type: graphql.String,
+			},
+			"balance": &graphql.Field{
+				Type: graphql.String,
+			},
+		},
+	})
+
 	transferResultType := graphql.NewObject(graphql.ObjectConfig{
 		Name: "TransferResult",
 		Fields: graphql.Fields{
@@ -73,10 +85,16 @@ func createSchema() (graphql.Schema, error) {
 	queryType := graphql.NewObject(graphql.ObjectConfig{
 		Name: "Query",
 		Fields: graphql.Fields{
-			"dummy": &graphql.Field{
-				Type: graphql.String,
+			"wallet": &graphql.Field{
+				Type: walletType,
+				Args: graphql.FieldConfigArgument{
+					"address": &graphql.ArgumentConfig{
+						Type: graphql.NewNonNull(graphql.String),
+					},
+				},
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-					return "dummy", nil
+					address := p.Args["address"].(string)
+					return resolver.GetWallet(address)
 				},
 			},
 		},

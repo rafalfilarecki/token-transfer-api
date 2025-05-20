@@ -23,3 +23,7 @@ func (r *Resolver) Transfer(args TransferArgs) (*model.TransferResult, error) {
 		Balance: balance,
 	}, nil
 }
+
+func (r *Resolver) GetWallet(address string) (*model.Wallet, error) {
+	return db.GetWallet(address)
+}
